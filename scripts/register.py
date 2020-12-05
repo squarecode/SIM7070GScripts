@@ -16,16 +16,16 @@ ser = serial.Serial('/dev/ttyAMA0',115200)
 ser.flushInput()
 
 def checkSIM():
-    print('Checking SIM status')
+    print('-> Checking SIM status')
     if(send_at('AT+CPIN?','READY',1)==1):
-        print('-> SIM ready')
+        print(' -> SIM ready')
         return 1
     else:
         if(send_at('AT+CPIN?','SIM PIN',1)==1):
-            print('-> SIM pin required!')
+            print(' -> SIM pin required!')
             return 0
         else:
-			print('-> SIM error')
+			print(' -> SIM error')
 			return 2
 
 # useful for sim cards that have no lte contract
@@ -40,13 +40,20 @@ def register():
         # enable network registration
         send_at('AT+CREG=1','OK',1)
         # wait for successful registration
-        print('Registering...')
+        print('-> Registering...')
         while(send_at('AT+CREG?','1,1',1)!=1):
             time.sleep(1)
-        print('Success!')
+        print(' -> Success!')
         buff = send_at_get_result('AT+COPS?','OK',1)
-        print('Registered to: '+buff.split(',')[2])
-        
+        print(' -> Registered to: '+buff.split(',')[2])
+        print('-> Attach to GPRS/LTE now')
+        send_at('AT+CGATT=1','OK',1)
+        while(send_at('AT+CGATT?','1',1)!=1):
+			time.sleep(1)
+        print('-> Set PDP Context')
+        send_at('AT+CGDCONT=1,"IP","em"','OK',1)
+        print('-> Registration done. Ready to communicate!')
+         
 
 def main():
     try:
