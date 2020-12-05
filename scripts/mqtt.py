@@ -19,16 +19,22 @@ MQTT_SERVER = 'test.mosquitto.org'
 def mqttPublish(topic,message):
     print('-> Publish '+message+' to '+topic)
     if('0' in send_at_get_result('AT+SMSTATE?','OK',0.1)):
+        print(' -> No connection active')
         initConnection()
     send_at_add_msg('AT+SMPUB="'+topic+'",'+str(len(message))+',0,0','>',0.1,message)
+    print('-> Publishing of '+message+' to '+topic+' topic done.')
 
 def initConnection():
+    print(' -> Init a new connection')
     send_at_get_result('AT+SMDISC','OK',1) #disconnect from what might be a broken pipe
     send_at('AT+CGMR','OK',0.1)
     send_at('AT+CMEE=0','OK',0.1)
     send_at('AT+CSQ','OK',0.1)
     send_at('AT+CPSI?','OK',0.1)
     send_at('AT+CGREG?','+CGREG: 0,1',0.1)
+    
+    buff = send_at_get_result('AT+COPS?','OK',1)
+    print(' -> Registered to: '+buff.split(',')[2])
     
     if('0,0' in send_at_get_result('AT+CNACT?','OK',0.1)):
         send_at('AT+CNACT=0,1','OK',0.5)
